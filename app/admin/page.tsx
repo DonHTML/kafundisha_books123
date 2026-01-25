@@ -25,7 +25,7 @@ export default function AdminDashboard() {
     const [activities, setActivities] = useState([
         { id: 1, icon: <SettingsIcon size={14} />, text: "System Initialized", sub: "Workspace Ready", time: "Just now" },
     ]);
-    const [stats, setStats] = useState({ products: 0, stories: 0, requests: 0 });
+    const [stats, setStats] = useState({ products: 0, stories: 0, requests: 0, visits: 0 });
     const [loading, setLoading] = useState(true);
 
     const supabase = createClient();
@@ -54,10 +54,17 @@ export default function AdminDashboard() {
                     .from('teacher_requests')
                     .select('*', { count: 'exact', head: true });
 
+                const { data: visitsData } = await supabase
+                    .from('site_settings')
+                    .select('config_value')
+                    .eq('config_key', 'store_visits')
+                    .single();
+
                 setStats({
                     products: productCount || 0,
                     stories: storyCount || 0,
-                    requests: requestCount || 0
+                    requests: requestCount || 0,
+                    visits: visitsData?.config_value?.count || 0
                 });
             } catch (err) {
                 console.error("Error fetching stats:", err);
@@ -176,10 +183,10 @@ export default function AdminDashboard() {
                 />
                 <StatCard
                     title="Store Visits"
-                    value="---"
-                    trend="Coming Soon"
+                    value={stats.visits.toString()}
+                    trend={loading ? "Loading..." : "Total Page Loads"}
                     icon={<EyeIcon size={24} />}
-                    color="bg-zinc-50 text-zinc-600"
+                    color="bg-purple-50 text-purple-600"
                 />
             </div>
 

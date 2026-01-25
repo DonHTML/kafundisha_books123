@@ -1,13 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { WhatsAppIcon, BookOpenIcon, SearchIcon, XIcon, FilterIcon } from "@/components/Icons";
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/utils/supabase/client";
 
 export default function ShopClient({ initialProducts }: { initialProducts: any[] }) {
     const [searchQuery, setSearchQuery] = useState("");
     const [activeCategory, setActiveCategory] = useState("All");
+    const supabase = createClient();
+
+    useEffect(() => {
+        const trackVisit = async () => {
+            if (sessionStorage.getItem("visit_counted")) return;
+
+            try {
+                const { data } = await supabase
+                    .from('site_settings')
+                    .select('config_value')
+                    .eq('config_key', 'store_visits')
+                    .single();
+
+                let count = 100; // Start from a realistic base if empty
+                if (data?.config_value?.count) {
+                    count = data.config_value.count;
+                }
+
+                await supabase.from('site_settings').upsert({
+                    config_key: 'store_visits',
+                    config_value: { count: count + 1 }
+                });
+
+                sessionStorage.setItem("visit_counted", "true");
+            } catch (err) {
+                console.error("Visit tracking error:", err);
+            }
+        };
+
+        trackVisit();
+    }, []);
 
     const categories = ["All", ...Array.from(new Set(initialProducts.map(p => p.category)))];
 
@@ -60,8 +92,8 @@ export default function ShopClient({ initialProducts }: { initialProducts: any[]
                                     key={cat}
                                     onClick={() => setActiveCategory(cat)}
                                     className={`px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeCategory === cat
-                                            ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105"
-                                            : "bg-white border border-zinc-200 text-zinc-500 hover:border-primary hover:text-primary"
+                                        ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105"
+                                        : "bg-white border border-zinc-200 text-zinc-500 hover:border-primary hover:text-primary"
                                         }`}
                                 >
                                     {cat}
@@ -104,8 +136,8 @@ export default function ShopClient({ initialProducts }: { initialProducts: any[]
                                     <h3 className="text-3xl font-black tracking-tight text-zinc-900 mb-4 uppercase italic">
                                         {product.name}
                                     </h3>
-                                    <div className="h-16">
-                                        <p className="text-zinc-500 font-medium mb-8 leading-relaxed line-clamp-2 uppercase tracking-wide text-xs">
+                                    <div>
+                                        <p className="text-zinc-500 font-medium mb-4 leading-relaxed line-clamp-4 uppercase tracking-wide text-xs">
                                             {product.description}
                                         </p>
                                     </div>
