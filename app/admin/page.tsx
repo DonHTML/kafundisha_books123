@@ -152,7 +152,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Main Stats Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 <StatCard
                     title="Live Products"
                     value={stats.products.toString()}
@@ -173,6 +173,13 @@ export default function AdminDashboard() {
                     trend={loading ? "Loading..." : "Recent Leads"}
                     icon={<UsersIcon size={24} />}
                     color="bg-green-50 text-green-600"
+                />
+                <StatCard
+                    title="Store Visits"
+                    value="---"
+                    trend="Coming Soon"
+                    icon={<EyeIcon size={24} />}
+                    color="bg-zinc-50 text-zinc-600"
                 />
             </div>
 
