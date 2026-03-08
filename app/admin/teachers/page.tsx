@@ -15,6 +15,7 @@ import {
     Trash2Icon
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { deleteTeacherRequestAction, getTeacherRequestsAction } from "../actions";
 
 export default function TeachersPartners() {
     const [requests, setRequests] = useState<any[]>([]);
@@ -24,13 +25,10 @@ export default function TeachersPartners() {
     const fetchRequests = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('teacher_requests')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const result = await getTeacherRequestsAction();
 
-            if (error) throw error;
-            setRequests(data || []);
+            if (!result.success) throw new Error(result.error);
+            setRequests(result.data || []);
         } catch (err) {
             console.error("Error fetching requests:", err);
         } finally {
@@ -45,8 +43,8 @@ export default function TeachersPartners() {
     const handleDelete = async (id: string) => {
         if (!confirm("Remove this request from the queue?")) return;
         try {
-            const { error } = await supabase.from('teacher_requests').delete().eq('id', id);
-            if (error) throw error;
+            const result = await deleteTeacherRequestAction(id);
+            if (!result.success) throw new Error(result.error);
             fetchRequests();
         } catch (err) {
             console.error("Delete error:", err);

@@ -3,14 +3,13 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { BookOpenIcon, LockIcon, ArrowRightIcon } from "lucide-react";
-import { createClient } from "@/utils/supabase/client";
+import { loginAction } from "./actions";
 
 export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const supabase = createClient();
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,43 +17,21 @@ export default function LoginPage() {
         setError("");
 
         try {
-            // 1. Fetch Key from Supabase
-            const { data, error: fetchError } = await supabase
-                .from('site_settings')
-                .select('config_value')
-                .eq('config_key', 'admin_access_key')
-                .single();
-
-            let targetKey = "admin123";
-
-            if (data?.config_value?.key) {
-                targetKey = data.config_value.key;
-            } else {
-                // Initial migration if missing in DB
-                await supabase.from('site_settings').upsert({
-                    config_key: 'admin_access_key',
-                    config_value: { key: "admin123" }
-                });
-            }
-
-            if (password === targetKey) {
+            const result = await loginAction(password);
+            if (result.success) {
+                // Ensure local storage has a flag for compatibility if needed elsewhere, but not for security
                 localStorage.setItem("admin_auth", "true");
-                router.push("/admin");
+
+                // Use window.location.href to force a hard reload so Middleware intercepts and sets cookies securely
+                window.location.href = "/admin";
             } else {
-                setError("Invalid access key. Please try again.");
+                setError(result.error || "Login Failed");
                 setLoading(false);
             }
         } catch (err) {
             console.error(err);
-            // Emergency fallback to local check if DB fails
-            const localKey = localStorage.getItem("admin_access_key") || "admin123";
-            if (password === localKey) {
-                localStorage.setItem("admin_auth", "true");
-                router.push("/admin");
-            } else {
-                setError("Connection error. Using local backup failed.");
-                setLoading(false);
-            }
+            setError("Connection error. Please try again later.");
+            setLoading(false);
         }
     };
 

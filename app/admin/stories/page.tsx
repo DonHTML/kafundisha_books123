@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { deleteStoryAction } from "../actions";
 
 export default function StoriesManager() {
     const [stories, setStories] = useState<any[]>([]);
@@ -46,8 +47,8 @@ export default function StoriesManager() {
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure you want to delete this story?")) return;
         try {
-            const { error } = await supabase.from('stories').delete().eq('id', id);
-            if (error) throw error;
+            const result = await deleteStoryAction(id);
+            if (!result.success) throw new Error(result.error);
             fetchStories();
         } catch (err) {
             console.error("Delete error:", err);

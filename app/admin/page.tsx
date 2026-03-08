@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import Link from "next/link";
+import { getAdminDashboardStatsAction } from "./actions";
 
 export default function AdminDashboard() {
     const [mounted, setMounted] = useState(false);
@@ -28,8 +29,6 @@ export default function AdminDashboard() {
     const [stats, setStats] = useState({ products: 0, stories: 0, requests: 0, visits: 0 });
     const [loading, setLoading] = useState(true);
 
-    const supabase = createClient();
-
     useEffect(() => {
         setMounted(true);
         const updateTime = () => {
@@ -39,33 +38,15 @@ export default function AdminDashboard() {
         updateTime();
         const interval = setInterval(updateTime, 1000);
 
-        // Fetch Live Data from Supabase
+        // Fetch Live Data securely via Server Action
         const fetchStats = async () => {
             try {
-                const { count: productCount } = await supabase
-                    .from('products')
-                    .select('*', { count: 'exact', head: true });
-
-                const { count: storyCount } = await supabase
-                    .from('stories')
-                    .select('*', { count: 'exact', head: true });
-
-                const { count: requestCount } = await supabase
-                    .from('teacher_requests')
-                    .select('*', { count: 'exact', head: true });
-
-                const { data: visitsData } = await supabase
-                    .from('site_settings')
-                    .select('config_value')
-                    .eq('config_key', 'store_visits')
-                    .single();
-
-                setStats({
-                    products: productCount || 0,
-                    stories: storyCount || 0,
-                    requests: requestCount || 0,
-                    visits: visitsData?.config_value?.count || 0
-                });
+                const result = await getAdminDashboardStatsAction();
+                if (result.success && result.data) {
+                    setStats(result.data);
+                } else {
+                    console.error("Error fetching stats:", result.error);
+                }
             } catch (err) {
                 console.error("Error fetching stats:", err);
             } finally {

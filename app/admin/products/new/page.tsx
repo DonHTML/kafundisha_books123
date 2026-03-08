@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { insertProductAction } from "../../actions";
 
 export default function NewProduct() {
     const router = useRouter();
@@ -42,6 +43,19 @@ export default function NewProduct() {
         setError("");
 
         const file = e.target.files[0];
+
+        // Security checks
+        if (!file.type.startsWith('image/')) {
+            setError("Only image formats are allowed.");
+            setUploading(false);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError("Image size must be less than 5MB.");
+            setUploading(false);
+            return;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `prod_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -72,11 +86,8 @@ export default function NewProduct() {
         setError("");
 
         try {
-            const { error: dbError } = await supabase
-                .from('products')
-                .insert([formData]);
-
-            if (dbError) throw dbError;
+            const result = await insertProductAction(formData);
+            if (!result.success) throw new Error(result.error);
 
             setSuccess(true);
             setTimeout(() => {

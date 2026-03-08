@@ -5,19 +5,16 @@ import {
     PlusIcon,
     SearchIcon,
     FilterIcon,
-    MoreVerticalIcon,
     Edit2Icon,
-    EyeOffIcon,
     Trash2Icon,
-    ExternalLinkIcon,
-    ShoppingBagIcon,
-    ArrowRightIcon
+    ArrowRightIcon,
+    TabletIcon
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { deleteProductAction } from "../actions";
 
-export default function ProductsManager() {
+export default function EbooksManager() {
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const supabase = createClient();
@@ -28,12 +25,13 @@ export default function ProductsManager() {
             const { data, error } = await supabase
                 .from('products')
                 .select('*')
+                .eq('category', 'eBooks')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
             setProducts(data || []);
         } catch (err) {
-            console.error("Error fetching products:", err);
+            console.error("Error fetching ebooks:", err);
         } finally {
             setLoading(false);
         }
@@ -44,7 +42,7 @@ export default function ProductsManager() {
     }, []);
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this product?")) return;
+        if (!confirm("Are you sure you want to delete this eBook?")) return;
         try {
             const result = await deleteProductAction(id);
             if (!result.success) throw new Error(result.error);
@@ -68,31 +66,31 @@ export default function ProductsManager() {
                 <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                     <div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter text-zinc-900">
-                            Products <span className="text-primary italic">Manager</span>
+                            eBooks <span className="text-primary italic">Manager</span>
                         </h1>
                         <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                            Your product catalog is currently empty
+                            Your digital library is currently empty
                         </p>
                     </div>
                     <Link
-                        href="/admin/products/new"
+                        href="/admin/products/new?category=eBooks"
                         className="flex items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-primary transition-all shadow-lg"
                     >
                         <PlusIcon size={18} />
-                        Create First Product
+                        Add First eBook
                     </Link>
                 </div>
 
                 <div className="rounded-[3rem] border-2 border-dashed border-zinc-200 bg-zinc-50/50 p-20 text-center">
                     <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-white shadow-xl shadow-zinc-200/50 mb-8">
-                        <ShoppingBagIcon className="text-zinc-200" size={40} />
+                        <TabletIcon className="text-zinc-200" size={40} />
                     </div>
-                    <h3 className="text-xl font-black uppercase tracking-tighter text-zinc-900">No Products Found</h3>
+                    <h3 className="text-xl font-black uppercase tracking-tighter text-zinc-900">No eBooks Found</h3>
                     <p className="mx-auto max-w-xs text-sm font-medium text-zinc-500 mt-2 mb-10 capitalize">
-                        Start building your library by adding your first educational book or tool.
+                        Start building your digital collection by adding your first PDF or digital resource.
                     </p>
                     <Link
-                        href="/admin/products/new"
+                        href="/admin/products/new?category=eBooks"
                         className="inline-flex items-center gap-3 text-xs font-black uppercase tracking-widest text-primary hover:gap-5 transition-all"
                     >
                         Click here to start <ArrowRightIcon size={16} />
@@ -108,18 +106,18 @@ export default function ProductsManager() {
             <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div>
                     <h1 className="text-3xl font-black uppercase tracking-tighter text-zinc-900">
-                        Products <span className="text-primary italic">Manager</span>
+                        eBooks <span className="text-primary italic">Manager</span>
                     </h1>
                     <p className="text-sm font-bold text-zinc-400 uppercase tracking-widest mt-1">
-                        Manage books, prices, and WhatsApp orders
+                        Manage digital downloads and PDF resources
                     </p>
                 </div>
                 <Link
-                    href="/admin/products/new"
+                    href="/admin/products/new?category=eBooks"
                     className="flex items-center justify-center gap-2 rounded-2xl bg-zinc-900 px-6 py-4 text-xs font-black uppercase tracking-widest text-white hover:bg-primary transition-all shadow-lg shadow-zinc-900/10"
                 >
                     <PlusIcon size={18} />
-                    Add New Product
+                    Add New eBook
                 </Link>
             </div>
 
@@ -129,7 +127,7 @@ export default function ProductsManager() {
                     <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400" size={18} />
                     <input
                         type="text"
-                        placeholder="Search products..."
+                        placeholder="Search eBooks..."
                         className="w-full rounded-xl bg-zinc-50 border-none pl-12 pr-4 py-3 text-sm font-bold placeholder:text-zinc-400 focus:ring-2 focus:ring-primary/20 transition-all"
                     />
                 </div>
@@ -149,7 +147,7 @@ export default function ProductsManager() {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="border-b border-zinc-100 bg-zinc-50/50">
-                            <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Product</th>
+                            <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">eBook Title</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Category</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Price</th>
                             <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">Status</th>
@@ -165,7 +163,7 @@ export default function ProductsManager() {
                                             {product.image_url ? (
                                                 <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
                                             ) : (
-                                                <span className="text-[8px] font-black uppercase text-zinc-300">No Image</span>
+                                                <TabletIcon size={20} />
                                             )}
                                         </div>
                                         <div>
@@ -210,7 +208,7 @@ export default function ProductsManager() {
             </div>
 
             <div className="flex items-center justify-between">
-                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Showing {products.length} products</p>
+                <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Showing {products.length} eBooks</p>
             </div>
         </div>
     );

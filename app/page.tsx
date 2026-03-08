@@ -1,8 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRightIcon, WhatsAppIcon, BookOpenIcon } from "@/components/Icons";
-import SecretVault from "@/components/SecretVault";
-
 export default function Home() {
   return (
     <div className="relative min-h-screen bg-white overflow-hidden">
@@ -131,9 +129,6 @@ export default function Home() {
           </Link>
         </div>
       </section>
-
-      {/* Hidden Secret Entry */}
-      <SecretVault />
     </div>
   );
 }

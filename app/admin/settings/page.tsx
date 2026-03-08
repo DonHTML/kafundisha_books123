@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { FacebookIcon, YoutubeIcon, TiktokIcon } from "@/components/Icons";
 import { createClient } from "@/utils/supabase/client";
+import { upsertSiteSettingsAction, updateAdminKeyAction } from "../actions";
 
 export default function SiteSettings() {
     const [saving, setSaving] = useState(false);
@@ -32,34 +33,32 @@ export default function SiteSettings() {
                     .eq('config_key', 'admin_access_key')
                     .single();
 
-                if (data?.config_value?.key) {
-                    setAccessKey(data.config_value.key);
-                } else {
-                    const localKey = localStorage.getItem("admin_access_key") || "admin123";
-                    setAccessKey(localKey);
+                if (data?.config_value) {
+                    // Do not populate plain text keys automatically if secure hash exists 
+                    if (!data.config_value.hash && data.config_value.key) {
+                        setAccessKey(data.config_value.key);
+                    }
                 }
             } catch (err) {
-                const localKey = localStorage.getItem("admin_access_key") || "admin123";
-                setAccessKey(localKey);
+                console.error(err);
             }
         };
         fetchSettings();
-    }, []);
+    }, [supabase]);
 
     const handleSave = async () => {
         setSaving(true);
         try {
-            // Save to Cloud
-            await supabase.from('site_settings').upsert({
-                config_key: 'admin_access_key',
-                config_value: { key: accessKey }
-            });
+            // Securely hash and update admin key via backend action
+            if (accessKey) {
+                const result = await updateAdminKeyAction(accessKey);
+                if (!result.success) throw new Error(result.error);
 
-            // Save to Local (Backup)
-            localStorage.setItem("admin_access_key", accessKey);
+                // Clear any unsafe legacy keys from local client
+                localStorage.removeItem("admin_access_key");
+            }
         } catch (err) {
-            console.error("Cloud save failed, using local only", err);
-            localStorage.setItem("admin_access_key", accessKey);
+            console.error("Cloud save failed", err);
         }
         setTimeout(() => setSaving(false), 2000);
     };

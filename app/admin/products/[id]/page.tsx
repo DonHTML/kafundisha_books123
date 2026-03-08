@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { updateProductAction, deleteProductAction } from "../../actions";
 
 export default function EditProduct() {
     const router = useRouter();
@@ -68,6 +69,19 @@ export default function EditProduct() {
         setError("");
 
         const file = e.target.files[0];
+
+        // Security checks
+        if (!file.type.startsWith('image/')) {
+            setError("Only image formats are allowed.");
+            setUploading(false);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError("Image size must be less than 5MB.");
+            setUploading(false);
+            return;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `prod_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -98,12 +112,8 @@ export default function EditProduct() {
         setError("");
 
         try {
-            const { error: dbError } = await supabase
-                .from('products')
-                .update(formData)
-                .eq('id', productId);
-
-            if (dbError) throw dbError;
+            const result = await updateProductAction(productId, formData);
+            if (!result.success) throw new Error(result.error);
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
@@ -118,12 +128,8 @@ export default function EditProduct() {
     const handleDelete = async () => {
         if (!confirm("Permanently delete this product from the shop?")) return;
         try {
-            const { error: delError } = await supabase
-                .from('products')
-                .delete()
-                .eq('id', productId);
-
-            if (delError) throw delError;
+            const result = await deleteProductAction(productId);
+            if (!result.success) throw new Error(result.error);
             router.push("/admin/products");
         } catch (err) {
             console.error(err);

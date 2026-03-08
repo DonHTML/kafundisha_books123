@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { insertStoryAction } from "../../actions";
 
 export default function NewStory() {
     const router = useRouter();
@@ -43,6 +44,19 @@ export default function NewStory() {
         setError("");
 
         const file = e.target.files[0];
+
+        // Security checks
+        if (!file.type.startsWith('image/')) {
+            setError("Only image formats are allowed.");
+            setUploading(false);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError("Image size must be less than 5MB.");
+            setUploading(false);
+            return;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `story_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -73,11 +87,8 @@ export default function NewStory() {
         setError("");
 
         try {
-            const { error: dbError } = await supabase
-                .from('stories')
-                .insert([formData]);
-
-            if (dbError) throw dbError;
+            const result = await insertStoryAction(formData);
+            if (!result.success) throw new Error(result.error);
 
             setSuccess(true);
             setTimeout(() => {

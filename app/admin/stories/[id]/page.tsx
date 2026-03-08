@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
+import { updateStoryAction, deleteStoryAction } from "../../actions";
 
 export default function EditStory() {
     const router = useRouter();
@@ -70,6 +71,19 @@ export default function EditStory() {
         setError("");
 
         const file = e.target.files[0];
+
+        // Security checks
+        if (!file.type.startsWith('image/')) {
+            setError("Only image formats are allowed.");
+            setUploading(false);
+            return;
+        }
+        if (file.size > 5 * 1024 * 1024) { // 5MB limit
+            setError("Image size must be less than 5MB.");
+            setUploading(false);
+            return;
+        }
+
         const fileExt = file.name.split('.').pop();
         const fileName = `story_${Math.random().toString(36).substring(2)}.${fileExt}`;
         const filePath = `${fileName}`;
@@ -100,12 +114,8 @@ export default function EditStory() {
         setError("");
 
         try {
-            const { error: dbError } = await supabase
-                .from('stories')
-                .update(formData)
-                .eq('id', storyId);
-
-            if (dbError) throw dbError;
+            const result = await updateStoryAction(storyId, formData);
+            if (!result.success) throw new Error(result.error);
 
             setSuccess(true);
             setTimeout(() => setSuccess(false), 3000);
@@ -120,12 +130,8 @@ export default function EditStory() {
     const handleDelete = async () => {
         if (!confirm("Permanently remove this story from the Media Lab?")) return;
         try {
-            const { error: delError } = await supabase
-                .from('stories')
-                .delete()
-                .eq('id', storyId);
-
-            if (delError) throw delError;
+            const result = await deleteStoryAction(storyId);
+            if (!result.success) throw new Error(result.error);
             router.push("/admin/stories");
         } catch (err) {
             console.error(err);

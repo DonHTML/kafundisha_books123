@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { BookOpenIcon, HomeIcon, ShoppingBagIcon, PlayIcon, UsersIcon, FileTextIcon, ImageIcon, SettingsIcon, LogOutIcon, Info as InfoIcon } from "lucide-react";
+import { logoutAction } from "./login/actions";
+import { BookOpenIcon, HomeIcon, ShoppingBagIcon, PlayIcon, UsersIcon, FileTextIcon, ImageIcon, SettingsIcon, LogOutIcon, Info as InfoIcon, BookIcon } from "lucide-react";
 
 export default function AdminLayout({
     children,
@@ -12,42 +12,16 @@ export default function AdminLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const [authorized, setAuthorized] = useState(false);
-    const [checking, setChecking] = useState(true);
 
-    useEffect(() => {
-        if (pathname === "/admin/login") {
-            setChecking(false);
-            return;
-        }
-
-        const isAuth = localStorage.getItem("admin_auth") === "true";
-        if (!isAuth) {
-            router.push("/admin/login");
-        } else {
-            setAuthorized(true);
-        }
-        setChecking(false);
-    }, [pathname, router]);
-
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        await logoutAction();
         localStorage.removeItem("admin_auth");
-        router.push("/admin/login");
+        window.location.href = "/admin/login";
     };
-
-    if (checking) {
-        return (
-            <div className="min-h-screen bg-zinc-50 flex items-center justify-center">
-                <div className="h-8 w-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-            </div>
-        );
-    }
 
     if (pathname === "/admin/login") {
         return <>{children}</>;
     }
-
-    if (!authorized) return null;
 
     return (
         <div className="flex min-h-screen bg-zinc-50 text-zinc-900 selection:bg-primary selection:text-white">
@@ -74,6 +48,7 @@ export default function AdminLayout({
                         <SidebarItem href="/admin" icon={<HomeIcon size={18} />} label="Dashboard" active={pathname === "/admin"} />
                         <SidebarItem href="/admin/products" icon={<ShoppingBagIcon size={18} />} label="Products" active={pathname.startsWith("/admin/products")} />
                         <SidebarItem href="/admin/stories" icon={<PlayIcon size={18} />} label="Stories & Media" active={pathname.startsWith("/admin/stories")} />
+                        <SidebarItem href="/admin/ebooks" icon={<BookIcon size={18} />} label="eBooks" active={pathname.startsWith("/admin/ebooks")} />
                         <SidebarItem href="/admin/teachers" icon={<UsersIcon size={18} />} label="Teachers & Partners" active={pathname.startsWith("/admin/teachers")} />
                         <SidebarItem href="/admin/pages" icon={<FileTextIcon size={18} />} label="Pages Editor" active={pathname.startsWith("/admin/pages")} />
                         <SidebarItem href="/admin/media" icon={<ImageIcon size={18} />} label="Media Library" active={pathname.startsWith("/admin/media")} />
