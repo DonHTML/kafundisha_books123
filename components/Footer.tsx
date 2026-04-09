@@ -1,4 +1,5 @@
 import { BookOpenIcon, FacebookIcon, TiktokIcon, YoutubeIcon } from "./Icons";
+import StaffLink from "./StaffLink";
 
 export default function Footer() {
     return (
@@ -44,8 +45,8 @@ export default function Footer() {
 
                 <div className="mt-24 flex flex-col items-center justify-between gap-6 border-t border-zinc-200 pt-12 md:flex-row text-zinc-400 text-[10px] font-black uppercase tracking-[0.2em]">
                     <span>© 2026 KAFUNDISHA BOOKS & MEDIA</span>
-                    <div className="flex gap-8">
-                        <a href="/admin" className="hover:text-zinc-900 transition-colors">Workspace</a>
+                    <div className="flex items-center gap-8">
+                        <StaffLink />
                         <a href="#" className="hover:text-zinc-900 transition-colors">Privacy Policy</a>
                         <a href="#" className="hover:text-zinc-900 transition-colors">Terms</a>
                     </div>

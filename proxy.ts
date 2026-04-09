@@ -1,11 +1,15 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
     // Only run auth checks on /admin routes
     if (request.nextUrl.pathname.startsWith('/admin')) {
-        // Allow public access to login page
+        // Handle login page access
         if (request.nextUrl.pathname === '/admin/login') {
+            const session = request.cookies.get('admin_session')
+            if (session?.value === 'authenticated') {
+                return NextResponse.redirect(new URL('/admin', request.url))
+            }
             return NextResponse.next()
         }
 

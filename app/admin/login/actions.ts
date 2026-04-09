@@ -6,9 +6,13 @@ import bcrypt from "bcryptjs";
 
 export async function loginAction(password: string) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    // Create server client for reading the access key
+    if (!supabaseKey || supabaseKey === 'your_service_role_key_here') {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing from environment variables. Please add it to your .env file.");
+    }
+
+    // Create server client for reading the access key bypassing RLS
     const cookieStore = await cookies();
     const supabase = createServerClient(supabaseUrl, supabaseKey, {
         cookies: {
@@ -33,7 +37,7 @@ export async function loginAction(password: string) {
         } else if (data?.config_value?.key) {
             isValid = password === data.config_value.key;
         } else {
-            isValid = password === "admin123";
+            isValid = password === "AdminMusonda";
         }
 
         if (isValid) {

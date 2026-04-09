@@ -10,9 +10,14 @@ async function verifyAuthAndGetClient() {
         throw new Error("Unauthorized request. Please log in.");
     }
 
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (!serviceKey || serviceKey === 'your_service_role_key_here') {
+        throw new Error("SUPABASE_SERVICE_ROLE_KEY is missing from environment variables.");
+    }
+
     return createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
+        serviceKey,
         {
             cookies: {
                 getAll() {
@@ -122,7 +127,11 @@ export async function updateProductAction(id: string, data: any) {
 export async function upsertSiteSettingsAction(config_key: string, config_value: any) {
     try {
         const supabase = await verifyAuthAndGetClient();
-        const { error } = await supabase.from('site_settings').upsert({ config_key, config_value });
+        const { error } = await supabase
+            .from('site_settings')
+            .update({ config_value })
+            .eq('config_key', config_key)
+            .select();
         if (error) throw error;
         return { success: true };
     } catch (err: any) {
@@ -132,20 +141,23 @@ export async function upsertSiteSettingsAction(config_key: string, config_value:
 
 export async function updateAdminKeyAction(newKey: string) {
     try {
-        const supabase = await verifyAuthAndGetClient();
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+        const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
+        if (!url || !key) return { success: false, error: "Missing config: " + [url, key].join(',') };
 
-        // Hash the new access key
+        const supabase = await verifyAuthAndGetClient();
         const hashedKey = await bcrypt.hash(newKey, 10);
 
-        // Save using the safe hash payload
-        const { error } = await supabase.from('site_settings').upsert({
-            config_key: 'admin_access_key',
-            config_value: { hash: hashedKey }
-        });
+        const { error } = await supabase
+            .from('site_settings')
+            .update({ config_value: { hash: hashedKey } })
+            .eq('config_key', 'admin_access_key')
+            .select();
 
         if (error) throw error;
         return { success: true };
     } catch (err: any) {
+        console.error("Update admin action failed:", err);
         return { success: false, error: err.message };
     }
 }
