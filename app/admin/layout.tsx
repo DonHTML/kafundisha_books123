@@ -1,9 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { logoutAction } from "./login/actions";
-import { BookOpenIcon, HomeIcon, ShoppingBagIcon, PlayIcon, UsersIcon, FileTextIcon, ImageIcon, SettingsIcon, LogOutIcon, Info as InfoIcon, BookIcon } from "lucide-react";
+import { BookOpenIcon, HomeIcon, ShoppingBagIcon, PlayIcon, UsersIcon, FileTextIcon, ImageIcon, SettingsIcon, LogOutIcon, Info as InfoIcon, BookIcon, MenuIcon, XIcon } from "lucide-react";
 
 export default function AdminLayout({
     children,
@@ -12,6 +13,12 @@ export default function AdminLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    // Close sidebar on route change automatically
+    useEffect(() => {
+        setIsSidebarOpen(false);
+    }, [pathname]);
 
     const handleLogout = async () => {
         await logoutAction();
@@ -25,26 +32,39 @@ export default function AdminLayout({
 
     return (
         <div className="flex min-h-screen bg-zinc-50 text-zinc-900 selection:bg-primary selection:text-white">
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && (
+                <div 
+                    className="fixed inset-0 z-30 bg-black/20 backdrop-blur-sm md:hidden animate-in fade-in" 
+                    onClick={() => setIsSidebarOpen(false)} 
+                />
+            )}
+
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 z-40 h-screen w-64 border-r border-zinc-200 bg-white transition-transform md:translate-x-0">
+            <aside className={`fixed left-0 top-0 z-40 h-screen w-64 border-r border-zinc-200 bg-white transition-transform duration-300 md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}>
                 <div className="flex h-full flex-col px-4 py-6">
                     {/* Branding */}
-                    <Link href="/" className="mb-10 flex items-center gap-3 px-2">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 text-white">
-                            <BookOpenIcon size={24} strokeWidth={2.5} />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-lg font-black uppercase tracking-tighter text-zinc-900 leading-none">
-                                Kafundisha
-                            </span>
-                            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
-                                Workspace
-                            </span>
-                        </div>
-                    </Link>
+                    <div className="mb-10 flex items-center justify-between px-2">
+                        <Link href="/" className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary shadow-lg shadow-primary/20 text-white">
+                                <BookOpenIcon size={24} strokeWidth={2.5} />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-lg font-black uppercase tracking-tighter text-zinc-900 leading-none">
+                                    Kafundisha
+                                </span>
+                                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">
+                                    Workspace
+                                </span>
+                            </div>
+                        </Link>
+                        <button onClick={() => setIsSidebarOpen(false)} className="md:hidden text-zinc-400 hover:text-zinc-900">
+                            <XIcon size={24} />
+                        </button>
+                    </div>
 
                     {/* Navigation */}
-                    <nav className="flex-1 space-y-1">
+                    <nav className="flex-1 space-y-1 overflow-y-auto pr-1 custom-scrollbar">
                         <SidebarItem href="/admin" icon={<HomeIcon size={18} />} label="Dashboard" active={pathname === "/admin"} />
                         <SidebarItem href="/admin/products" icon={<ShoppingBagIcon size={18} />} label="Products" active={pathname.startsWith("/admin/products")} />
                         <SidebarItem href="/admin/stories" icon={<PlayIcon size={18} />} label="Stories & Media" active={pathname.startsWith("/admin/stories")} />
@@ -70,27 +90,30 @@ export default function AdminLayout({
             </aside>
 
             {/* Main Content */}
-            <main className="flex-1 md:ml-64">
+            <main className="flex-1 md:ml-64 w-full min-w-0">
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-zinc-200 bg-white/80 px-8 backdrop-blur-md">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-black uppercase tracking-tighter text-zinc-900">Control Center</h1>
+                <header className="sticky top-0 z-20 flex h-20 items-center justify-between border-b border-zinc-200 bg-white/80 px-4 md:px-8 backdrop-blur-md">
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <button onClick={() => setIsSidebarOpen(true)} className="md:hidden p-2 -ml-2 text-zinc-500 hover:text-zinc-900">
+                            <MenuIcon size={24} />
+                        </button>
+                        <h1 className="text-lg md:text-xl font-black uppercase tracking-tighter text-zinc-900 hidden sm:block">Control Center</h1>
                         <span className="rounded-full bg-green-100 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-green-600">
                             Live
                         </span>
                     </div>
-                    <div className="flex items-center gap-4">
-                        <div className="text-right">
+                    <div className="flex items-center gap-3 md:gap-4">
+                        <div className="text-right hidden sm:block">
                             <p className="text-xs font-black uppercase tracking-widest text-zinc-900">Kafundisha Admin</p>
                             <p className="text-[10px] font-medium text-zinc-500">Brand Manager</p>
                         </div>
-                        <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xs">
+                        <div className="h-10 w-10 shrink-0 rounded-xl bg-primary flex items-center justify-center text-white font-black text-xs">
                             KB
                         </div>
                     </div>
                 </header>
 
-                <div className="p-8">
+                <div className="p-4 sm:p-6 md:p-8 overflow-x-hidden">
                     {children}
                 </div>
             </main>

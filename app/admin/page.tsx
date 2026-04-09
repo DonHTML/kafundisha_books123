@@ -67,7 +67,7 @@ export default function AdminDashboard() {
         <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Dynamic Header Info */}
             <div className="grid gap-6 md:grid-cols-3">
-                <div className="md:col-span-2 flex items-center justify-between bg-zinc-900 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                <div className="md:col-span-2 flex items-center justify-between bg-zinc-900 p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                     <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
                         <SparklesIcon size={120} className="text-white" />
                     </div>
@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white p-8 rounded-[3rem] border border-zinc-200 shadow-sm flex flex-col justify-between">
+                <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[3rem] border border-zinc-200 shadow-sm flex flex-col justify-between">
                     <div className="flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full border border-green-100 self-start">
                         <span className={`h-1.5 w-1.5 rounded-full ${loading ? 'bg-orange-400' : 'bg-green-500'} animate-pulse`} />
                         <span className={`text-[10px] font-black uppercase tracking-widest ${loading ? 'text-orange-600' : 'text-green-600'}`}>
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Beginner Friendly Guide */}
-            <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-10 rounded-[3.5rem] space-y-8">
+            <div className="bg-primary/5 border-2 border-dashed border-primary/20 p-6 sm:p-8 md:p-10 rounded-[2rem] md:rounded-[3.5rem] space-y-6 md:space-y-8">
                 <div className="flex items-center gap-4">
                     <div className="h-12 w-12 rounded-2xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20">
                         <InfoIcon size={24} />
@@ -172,7 +172,7 @@ export default function AdminDashboard() {
             </div>
 
             {/* Quick Buttons Overlay */}
-            <div className="grid gap-6 md:grid-cols-4">
+            <div className="grid gap-3 sm:gap-6 grid-cols-2 md:grid-cols-4">
                 <QuickButton icon={<ShoppingBagIcon size={20} />} label="Manage Shop" href="/admin/products" primary />
                 <QuickButton icon={<PlayIcon size={20} />} label="Manage Stories" href="/admin/stories" />
                 <QuickButton icon={<UsersIcon size={20} />} label="View Partner Leads" href="/admin/teachers" />
@@ -181,7 +181,7 @@ export default function AdminDashboard() {
 
             <div className="grid gap-8 lg:grid-cols-3">
                 {/* Traffic Chart Placeholder */}
-                <div className="lg:col-span-2 rounded-[2.5rem] border border-zinc-200 bg-white p-10 shadow-sm relative overflow-hidden group">
+                <div className="lg:col-span-2 rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200 bg-white p-6 md:p-10 shadow-sm relative overflow-hidden group">
                     <div className="mb-12 flex items-center justify-between font-black uppercase tracking-widest">
                         <div>
                             <h2 className="text-2xl font-black uppercase tracking-tighter text-zinc-900">Store <span className="text-primary italic">Visits</span></h2>
@@ -206,7 +206,7 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Daily Checklist (Replacing Activity Stream for non-technical admins) */}
-                <div className="rounded-[2.5rem] border border-zinc-200 bg-white p-10 shadow-sm relative group">
+                <div className="rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200 bg-white p-6 md:p-10 shadow-sm relative group">
                     <h2 className="mb-8 text-xl font-black uppercase tracking-tighter text-zinc-900 flex items-center gap-2">
                         Daily <span className="text-primary italic">Success Checklist</span>
                     </h2>
@@ -261,7 +261,7 @@ function ChecklistItem({ text, sub, href, done = false, external = false }: any)
 
 function StatCard({ title, value, trend, icon, color }: any) {
     return (
-        <div className="group relative rounded-[2.5rem] border border-zinc-200 bg-white p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 overflow-hidden">
+        <div className="group relative rounded-[2rem] md:rounded-[2.5rem] border border-zinc-200 bg-white p-6 md:p-8 shadow-sm transition-all hover:shadow-xl hover:-translate-y-1 overflow-hidden">
             <div className="mb-6 flex items-center justify-between relative z-10">
                 <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${color} transition-transform group-hover:scale-110`}>
                     {icon}
@@ -281,7 +281,7 @@ function QuickButton({ icon, label, href, primary = false }: any) {
     return (
         <Link
             href={href}
-            className={`flex items-center justify-center gap-3 rounded-[2rem] p-5 text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${primary
+            className={`flex flex-col sm:flex-row text-center sm:text-left items-center justify-center gap-2 sm:gap-3 rounded-[1.5rem] sm:rounded-[2rem] p-4 sm:p-5 text-[9px] sm:text-[10px] font-black uppercase tracking-widest transition-all shadow-sm ${primary
                 ? "bg-zinc-900 text-white hover:bg-primary hover:shadow-primary/20"
                 : "bg-white text-zinc-500 border border-zinc-200 hover:border-primary hover:text-primary"
                 }`}
