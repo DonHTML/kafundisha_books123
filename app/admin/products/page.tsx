@@ -25,15 +25,26 @@ export default function ProductsManager() {
     const fetchProducts = async () => {
         setLoading(true);
         try {
+            // Explicit column list, not select('*') — see note in shop/page.tsx.
+            // Note: this still runs client-side under the anon key, so it can
+            // only ever return what your RLS "public can read products" policy
+            // allows. Any admin-only fields (cost price, supplier, internal
+            // notes, stock count) must live in a separate table/view that RLS
+            // denies to anon, and be fetched via a server action with the
+            // service role key after checking the admin_session cookie.
             const { data, error } = await supabase
                 .from('products')
-                .select('*')
+                .select('id, name, price, description, category, color_class, image_url, status, created_at')
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
             setProducts(data || []);
         } catch (err) {
-            console.error("Error fetching products:", err);
+            if (process.env.NODE_ENV !== "production") {
+                console.error("Error fetching products:", err);
+            } else {
+                console.error("Error fetching products");
+            }
         } finally {
             setLoading(false);
         }
@@ -50,7 +61,11 @@ export default function ProductsManager() {
             if (!result.success) throw new Error(result.error);
             fetchProducts();
         } catch (err) {
-            console.error("Delete error:", err);
+            if (process.env.NODE_ENV !== "production") {
+                console.error("Delete error:", err);
+            } else {
+                console.error("Delete error");
+            }
         }
     };
 

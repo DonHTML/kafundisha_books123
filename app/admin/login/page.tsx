@@ -19,17 +19,20 @@ export default function LoginPage() {
         try {
             const result = await loginAction(password);
             if (result.success) {
-                // Ensure local storage has a flag for compatibility if needed elsewhere, but not for security
-                localStorage.setItem("admin_auth", "true");
-
-                // Use window.location.href to force a hard reload so Middleware intercepts and sets cookies securely
+                // Auth is enforced entirely by the httpOnly admin_session cookie
+                // (set server-side in loginAction) + middleware. No client-side
+                // flag is used or needed for security — removed the localStorage
+                // write since it did nothing but could be misread as a trust signal
+                // by future code.
                 window.location.href = "/admin";
             } else {
                 setError(result.error || "Login Failed");
                 setLoading(false);
             }
         } catch (err) {
-            console.error(err);
+            if (process.env.NODE_ENV !== "production") {
+                console.error(err);
+            }
             setError("Connection error. Please try again later.");
             setLoading(false);
         }

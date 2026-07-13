@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import bcrypt from "bcryptjs";
 
 async function verifyAuthAndGetClient() {
@@ -10,17 +10,15 @@ async function verifyAuthAndGetClient() {
         throw new Error("Unauthorized request. Please log in.");
     }
 
-    return createServerClient(
+    // IMPORTANT: service role key, not the anon key. This bypasses RLS,
+    // which is correct here BECAUSE the cookie check above already gated
+    // access. This also means RLS on products/stories/teacher_requests/
+    // site_settings can (and should) now be locked down to deny anon
+    // writes entirely — these actions no longer depend on anon having
+    // elevated permissions.
+    return createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY!,
-        {
-            cookies: {
-                getAll() {
-                    return cookieStore.getAll();
-                },
-                setAll() { },
-            },
-        }
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 }
 
@@ -122,6 +120,14 @@ export async function updateProductAction(id: string, data: any) {
 export async function upsertSiteSettingsAction(config_key: string, config_value: any) {
     try {
         const supabase = await verifyAuthAndGetClient();
+
+        // Belt-and-suspenders: never let the generic settings upsert be used
+        // to touch the admin password. That must only ever happen through
+        // updateAdminKeyAction below, which enforces hashing.
+        if (config_key === 'admin_access_key') {
+            throw new Error("Use updateAdminKeyAction to change the admin key.");
+        }
+
         const { error } = await supabase.from('site_settings').upsert({ config_key, config_value });
         if (error) throw error;
         return { success: true };
@@ -133,6 +139,10 @@ export async function upsertSiteSettingsAction(config_key: string, config_value:
 export async function updateAdminKeyAction(newKey: string) {
     try {
         const supabase = await verifyAuthAndGetClient();
+
+        if (!newKey || newKey.length < 8) {
+            throw new Error("Access key must be at least 8 characters.");
+        }
 
         // Hash the new access key
         const hashedKey = await bcrypt.hash(newKey, 10);

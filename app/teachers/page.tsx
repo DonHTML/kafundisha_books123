@@ -17,11 +17,23 @@ export default function TeachersPage() {
         location: "",
         interest: "Bulk Purchase"
     });
+    // Honeypot: real users never see or fill this field. Bots that
+    // auto-fill every input on the page will populate it, and we
+    // silently drop the submission instead of writing it to the DB.
+    const [botField, setBotField] = useState("");
 
     const supabase = createClient();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (botField.trim() !== "") {
+            // Looks like a bot. Pretend it worked so the bot doesn't
+            // learn anything useful, but don't touch the database.
+            setSuccess(true);
+            return;
+        }
+
         setLoading(true);
         setError("");
 
@@ -29,7 +41,11 @@ export default function TeachersPage() {
             const { error: dbError } = await supabase
                 .from('teacher_requests')
                 .insert([{
-                    ...formData,
+                    name: formData.name.trim().slice(0, 200),
+                    school: formData.school.trim().slice(0, 200),
+                    phone: formData.phone.trim().slice(0, 30),
+                    location: formData.location.trim().slice(0, 200),
+                    interest: formData.interest,
                     status: 'New'
                 }]);
 
@@ -39,7 +55,14 @@ export default function TeachersPage() {
             setFormData({ name: "", school: "", phone: "", location: "", interest: "Bulk Purchase" });
         } catch (err: any) {
             setError("Failed to send inquiry. Please try WhatsApp directly.");
-            console.error(err);
+            // Don't log the raw Supabase error object in production — it can
+            // include table/column names and query details. Log a short,
+            // non-identifying message instead.
+            if (process.env.NODE_ENV !== "production") {
+                console.error(err);
+            } else {
+                console.error("teacher_requests insert failed");
+            }
         } finally {
             setLoading(false);
         }
@@ -201,6 +224,23 @@ export default function TeachersPage() {
                                     <option>School Partnership</option>
                                     <option>Export Request</option>
                                 </select>
+
+                                {/* Honeypot field — hidden from real users via CSS, not `type="hidden"`
+                                    (bots skip those). Real visitors never see or focus it. */}
+                                <div
+                                    aria-hidden="true"
+                                    style={{ position: "absolute", left: "-9999px", width: 0, height: 0, overflow: "hidden" }}
+                                >
+                                    <label htmlFor="company_website">Company Website</label>
+                                    <input
+                                        id="company_website"
+                                        type="text"
+                                        tabIndex={-1}
+                                        autoComplete="off"
+                                        value={botField}
+                                        onChange={(e) => setBotField(e.target.value)}
+                                    />
+                                </div>
                             </div>
 
                             {error && (
