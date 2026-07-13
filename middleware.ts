@@ -11,8 +11,8 @@ export function middleware(request: NextRequest) {
 
         const session = request.cookies.get('admin_session')
 
-        if (!session?.value) {
-            // Redirect to login if unauthenticated
+        // sanitized,since Server Actions POST back to the page's own route
+        if (session?.value !== 'authenticated') {
             const loginUrl = new URL('/admin/login', request.url)
             return NextResponse.redirect(loginUrl)
         }
