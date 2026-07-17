@@ -8,9 +8,16 @@ export const revalidate = 3600; // revalidate every hour
 export default async function StoriesPage() {
     const supabase = createStaticClient();
 
+    // Explicit columns (not select('*')) + status filter, same reasoning as
+    // ebooks/page.tsx. NOTE: this assumes `stories` has a `status` column
+    // with a 'Published' value, matching the pattern on `products`. If it
+    // doesn't, this query will error — either add that column, or remove
+    // the .eq('status', 'Published') line below and tell me the actual
+    // column name you're using to mark stories as public/ready.
     const { data: stories } = await supabase
         .from('stories')
-        .select('*')
+        .select('id, title, description, youtube_id, category, thumbnail_url, status, created_at')
+        .eq('status', 'Published')
         .order('created_at', { ascending: false });
 
     const displayStories = (stories && stories.length > 0) ? stories : [
