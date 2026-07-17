@@ -7,13 +7,12 @@ export const revalidate = 3600; // revalidate every hour
 export default async function ShopPage() {
     const supabase = createStaticClient();
 
-    // IMPORTANT: never use select('*') on a table exposed to the client.
-    // Explicitly whitelist only the columns the storefront is allowed to show.
-    // If you add internal columns later (cost, supplier, stock_qty, notes, etc.)
-    // they will NOT leak here unless you deliberately add them below.
+    // Explicit columns (not select('*')), plus a status filter so draft/
+    // unpublished products never show up on the live storefront.
     const { data: products } = await supabase
         .from('products')
-        .select('id, name, price, description, category, color_class, image_url, created_at')
+        .select('id, name, price, description, category, color_class, image_url, status, created_at')
+        .eq('status', 'Published')
         .order('created_at', { ascending: false });
 
     const displayProducts = (products && products.length > 0) ? products : [
